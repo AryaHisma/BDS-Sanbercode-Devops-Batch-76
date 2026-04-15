@@ -1,0 +1,7 @@
+Data Peserta Bootcamp Digital Skill Devops :
+1. Nama : Arya Hisma Maulana
+2. Email : aryahisma@yahoo.co.id
+3. Sistem Operasi yang digunakan : Linux
+4. Akun Github : https://github.com/AryaHisma
+5. Akun Telegram : aria_kun (082366442840)
+6. Bahasa Pemograman / Stack yang dikuasai : Python
