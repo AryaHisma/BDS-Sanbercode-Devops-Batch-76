@@ -1,0 +1,28 @@
+=== HASIL REVIEW AI ===
+
+1. Script belum memiliki pengecekan apakah file syslog.txt ada atau tidak.
+   Jika file tidak ada, script akan error.
+
+2. Script tidak memberikan informasi apakah proses backup berhasil atau gagal.
+
+3. Tidak ada penggunaan timestamp, sehingga file backup bisa tertimpa.
+
+4. Nama file ditulis langsung (hardcoded), sehingga kurang fleksibel.
+
+5. Script tidak memiliki sistem logging untuk mencatat aktivitas backup.
+
+
+=== PENDAPAT SAYA ===
+
+Saya setuju dengan hasil review AI karena script yang saya buat masih sangat sederhana
+dan belum mempertimbangkan banyak kemungkinan error.
+
+Poin yang paling penting menurut saya adalah:
+- Pengecekan file (agar tidak error)
+- Penambahan timestamp (agar backup tidak tertimpa)
+
+Namun, untuk kasus sederhana atau pembelajaran dasar, script ini sebenarnya sudah cukup.
+Saran dari AI lebih cocok digunakan jika script ini dipakai di lingkungan produksi atau sistem nyata.
+
+Kesimpulannya, review dari AI sangat membantu untuk meningkatkan kualitas script
+agar lebih aman, fleksibel, dan profesional.
