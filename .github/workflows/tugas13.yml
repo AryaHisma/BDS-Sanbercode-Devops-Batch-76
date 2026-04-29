@@ -1,0 +1,19 @@
+name: Workflow Tugas 13
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  eksekusi-tugas:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ambil Kode
+        uses: actions/checkout@v4
+
+      - name: Test Keamanan Secret
+        env:
+          RAHASIA: ${{ secrets.MY_SECRET_KEY }}
+        run: |
+          echo "Memulai verifikasi keamanan..."
+          echo "Nilai Secret Key saya adalah: $RAHASIA"
