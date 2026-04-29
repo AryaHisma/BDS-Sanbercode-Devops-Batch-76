@@ -4,6 +4,10 @@ on:
   push:
     branches: [ "main" ]
 
+# Tambahkan bagian env ini di bawah "on"
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   eksekusi-tugas:
     runs-on: ubuntu-latest
