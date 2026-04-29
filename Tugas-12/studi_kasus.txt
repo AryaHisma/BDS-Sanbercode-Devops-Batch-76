@@ -1,0 +1,8 @@
+Tech Lead kalian bertanya:
+
+"Kenapa sih kita harus rajin melakukan apt purge atau menghapus servis yang nggak kepakai kayak MySQL/Postgres tadi sebelum kita instal SSL 
+dan rilis ke publik? Apa hubungannya sama keamanan dan performa server?"
+
+Jawab :
+Kita lakuin apt purge supaya server bener-bener 'bersih'. Jadi, pas kita buka ke internet, server kita lebih enteng buat jalanin aplikasi utama 
+dan lebih susah buat ditembus karena nggak banyak servis yang nggak jelas gunanya.
