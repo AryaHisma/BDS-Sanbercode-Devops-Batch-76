@@ -1,0 +1,33 @@
+name: Workflow Tugas 14 - Build Artifact
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build-project:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 3. Simulasi Build (Membuat Folder Dist)
+        run: |
+          mkdir dist
+          echo "<html><body><h1>Tugas 14 - Artifact Sukses</h1><p>Build dilakukan pada: $(date)</p></body></html>" > dist/index.html
+          echo "Folder dist berhasil dibuat untuk simulasi build."
+
+      - name: 4. Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hasil-build-tugas14
+          path: dist/
