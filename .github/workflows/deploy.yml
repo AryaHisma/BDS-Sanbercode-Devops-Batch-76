@@ -1,0 +1,67 @@
+name: CI/CD Pipeline Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # Job Build (Melanjutkan konsep sebelumnya)
+  build-app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install & Build
+        run: |
+          npm install
+          npm run build --if-present 
+          # Pastikan folder dist tersedia, jika tidak ada (karena dummy) kita buat manual
+          mkdir -p dist
+          echo "Build sukses pada $(date)" > dist/index.html
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hasil-build-web
+          path: dist/
+
+  # Job Baru: deploy-to-vps
+  deploy-to-vps:
+    runs-on: ubuntu-latest
+    needs: build-app # Mewajibkan job build sukses dulu
+    steps:
+      # 1. Mengunduh artifact 'hasil-build-web'
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: hasil-build-web
+          path: dist/
+
+      # 2. Transfer folder 'dist/' ke VPS menggunakan SCP
+      - name: Copy Artifact to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "dist/*"
+          target: "/var/www/aplikasi-saya" # Sesuaikan path di VPS-mu
+          strip_components: 1
+
+      # 3. Menjalankan perintah SSH untuk verifikasi
+      - name: Execute SSH Commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "Deployment Selesai!"
+            ls -la /var/www/aplikasi-saya
