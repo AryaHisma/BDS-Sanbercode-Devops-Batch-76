@@ -1,59 +1,67 @@
-name: Deployment-Tugas-15
+name: CI/CD Pipeline Production
 
 on:
   push:
-    branches: [ main ] # Trigger otomatis saat push ke main
+    branches:
+      - main
 
 jobs:
-  build:
+  build-app:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          
-      - name: Install & Build
-        run: |
-          npm install
-          npm run build # Ini akan menghasilkan folder 'dist'
-          
-      - name: Archive Artifact
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build # Menghasilkan folder dist/
+
+      # Tahap krusial: Upload artifact agar bisa diunduh oleh job deploy
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-dist
+          name: hasil-build-web
           path: dist/
 
-  deploy:
+  deploy-to-vps:
     runs-on: ubuntu-latest
-    needs: build # Syarat: Build harus sukses dulu
+    needs: build-app # Mewajibkan job build sukses dulu sebelum deploy jalan
     steps:
-      - name: Download Artifact
+      # 1. Mengunduh hasil "masakan" (Artifact)
+      - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
-          name: build-dist
-          path: dist-ready/
+          name: hasil-build-web
+          path: dist/
 
-      - name: SCP Transfer
-        uses: appleboy/scp-action@master
+      # 2. Kurir mengirim barang ke VPS menggunakan SCP Action
+      - name: Copy Artifact to VPS
+        uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.PORT }}
-          source: "dist-ready/*"
-          target: "/var/www/html/tugas-15" # Sesuaikan path di VPS
-          strip_components: 1
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "dist/*"
+          target: "/var/www/aplikasi-saya" # Sesuaikan path di VPS kalian
+          strip_components: 1 # Penting agar isi folder dist langsung masuk ke target
 
-      - name: SSH Command
-        uses: appleboy/ssh-action@master
+      # 3. Masuk ke VPS dan Restart Service
+      - name: Execute Restart Command via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.PORT }}
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            echo "Deployment Selesai!"
-            ls -la /var/www/html/tugas-15
+            echo "Memulai proses restart service di VPS..."
+            # Verifikasi file yang masuk
+            ls -la /var/www/aplikasi-saya
+            echo "Deployment Production Sukses!"
