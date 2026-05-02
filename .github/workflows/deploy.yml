@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  # Job Build (Melanjutkan konsep sebelumnya)
+  # Job Build
   build-app:
     runs-on: ubuntu-latest
     steps:
@@ -22,7 +22,7 @@ jobs:
         run: |
           npm install
           npm run build --if-present 
-          # Pastikan folder dist tersedia, jika tidak ada (karena dummy) kita buat manual
+          # Pastikan folder dist tersedia untuk di-upload
           mkdir -p dist
           echo "Build sukses pada $(date)" > dist/index.html
 
@@ -32,36 +32,38 @@ jobs:
           name: hasil-build-web
           path: dist/
 
-  # Job Baru: deploy-to-vps
+  # Job Deploy
   deploy-to-vps:
     runs-on: ubuntu-latest
-    needs: build-app # Mewajibkan job build sukses dulu
+    needs: build-app
     steps:
-      # 1. Mengunduh artifact 'hasil-build-web'
+      # 1. Mengunduh artifact
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
           name: hasil-build-web
           path: dist/
 
-      # 2. Transfer folder 'dist/' ke VPS menggunakan SCP
+      # 2. Transfer ke VPS dengan Port 1990 dan Secret MY_KEY
       - name: Copy Artifact to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          key: ${{ secrets.MY_KEY }} # Menggunakan nama secret kamu
+          port: 1990                # Menggunakan port custom kamu
           source: "dist/*"
-          target: "/var/www/aplikasi-saya" # Sesuaikan path di VPS-mu
+          target: "/var/www/aplikasi-saya"
           strip_components: 1
 
-      # 3. Menjalankan perintah SSH untuk verifikasi
+      # 3. Eksekusi SSH dengan Port 1990 dan Secret MY_KEY
       - name: Execute SSH Commands
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          key: ${{ secrets.MY_KEY }} # Menggunakan nama secret kamu
+          port: 1990                # Menggunakan port custom kamu
           script: |
             echo "Deployment Selesai!"
             ls -la /var/www/aplikasi-saya
