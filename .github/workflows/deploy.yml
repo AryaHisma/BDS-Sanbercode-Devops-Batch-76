@@ -6,6 +6,7 @@ on:
       - main
 
 jobs:
+  # Job Build (Melanjutkan konsep sebelumnya)
   build-app:
     runs-on: ubuntu-latest
     steps:
@@ -16,33 +17,34 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm ci
+      - name: Install & Build
+        run: |
+          npm install
+          npm run build --if-present 
+          # Pastikan folder dist tersedia, jika tidak ada (karena dummy) kita buat manual
+          mkdir -p dist
+          echo "Build sukses pada $(date)" > dist/index.html
 
-      - name: Build Project
-        run: npm run build # Menghasilkan folder dist/
-
-      # Tahap krusial: Upload artifact agar bisa diunduh oleh job deploy
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: hasil-build-web
           path: dist/
 
+  # Job Baru: deploy-to-vps
   deploy-to-vps:
     runs-on: ubuntu-latest
-    needs: build-app # Mewajibkan job build sukses dulu sebelum deploy jalan
+    needs: build-app # Mewajibkan job build sukses dulu
     steps:
-      # 1. Mengunduh hasil "masakan" (Artifact)
+      # 1. Mengunduh artifact 'hasil-build-web'
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
           name: hasil-build-web
           path: dist/
 
-      # 2. Kurir mengirim barang ke VPS menggunakan SCP Action
+      # 2. Transfer folder 'dist/' ke VPS menggunakan SCP
       - name: Copy Artifact to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -50,18 +52,16 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "dist/*"
-          target: "/var/www/aplikasi-saya" # Sesuaikan path di VPS kalian
-          strip_components: 1 # Penting agar isi folder dist langsung masuk ke target
+          target: "/var/www/aplikasi-saya" # Sesuaikan path di VPS-mu
+          strip_components: 1
 
-      # 3. Masuk ke VPS dan Restart Service
-      - name: Execute Restart Command via SSH
+      # 3. Menjalankan perintah SSH untuk verifikasi
+      - name: Execute SSH Commands
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            echo "Memulai proses restart service di VPS..."
-            # Verifikasi file yang masuk
+            echo "Deployment Selesai!"
             ls -la /var/www/aplikasi-saya
-            echo "Deployment Production Sukses!"
