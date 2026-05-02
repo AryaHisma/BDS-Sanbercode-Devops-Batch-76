@@ -1,0 +1,7 @@
+{
+  "name": "tugas-15",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "mkdir -p dist && echo '<h1>Build Berhasil - Arya</h1>' > dist/index.html"
+  }
+}
