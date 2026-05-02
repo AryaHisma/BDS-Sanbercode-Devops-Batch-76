@@ -1,0 +1,59 @@
+name: Deployment-Tugas-15
+
+on:
+  push:
+    branches: [ main ] # Trigger otomatis saat push ke main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install & Build
+        run: |
+          npm install
+          npm run build # Ini akan menghasilkan folder 'dist'
+          
+      - name: Archive Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-dist
+          path: dist/
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build # Syarat: Build harus sukses dulu
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-dist
+          path: dist-ready/
+
+      - name: SCP Transfer
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+          source: "dist-ready/*"
+          target: "/var/www/html/tugas-15" # Sesuaikan path di VPS
+          strip_components: 1
+
+      - name: SSH Command
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            echo "Deployment Selesai!"
+            ls -la /var/www/html/tugas-15
