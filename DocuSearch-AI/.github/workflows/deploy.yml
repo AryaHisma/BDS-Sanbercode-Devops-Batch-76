@@ -1,0 +1,59 @@
+name: Deploy DocuSearch-AI to VPS
+
+on:
+  push:
+    branches:
+      - main # Jalankan otomatis jika ada push ke branch main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install Frontend Dependencies & Build
+      run: |
+        npm install
+        npm run build
+
+    - name: Prepare Deployment Package
+      run: |
+        mkdir -p deploy-package
+        cp -r dist deploy-package/
+        cp -r backend deploy-package/
+
+    - name: Deploy to VPS via SSH
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        password: ${{ secrets.VPS_PASSWORD }} # Atau gunakan key: ${{ secrets.VPS_SSH_KEY }}
+        source: "deploy-package/*"
+        target: "/var/www/docusearch"
+        strip_components: 1
+
+    - name: Execute Deployment Commands on VPS
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        password: ${{ secrets.VPS_PASSWORD }}
+        script: |
+          cd /var/www/docusearch/backend
+          
+          # Buat file .env menggunakan GitHub Secrets
+          echo "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" > .env
+          
+          # Install dependensi backend
+          npm install --production
+          
+          # Mulai atau restart PM2 (menggunakan ecosystem file untuk manajemen RAM)
+          pm2 start ecosystem.config.cjs || pm2 restart docusearch-backend
+          pm2 save
