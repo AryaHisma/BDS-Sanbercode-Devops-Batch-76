@@ -5,7 +5,9 @@ on:
     branches:
       - main # Jalankan otomatis jika ada push ke branch main
     paths:
-      - 'DocuSearch-AI/**' # Hanya jalankan jika ada perubahan di folder DocuSearch-AI
+      - 'DocuSearch-AI/**' # Jalankan jika ada perubahan di folder DocuSearch-AI
+      - '.github/workflows/deploy-docusearch.yml' # Jalankan jika workflow ini diubah
+  workflow_dispatch: # Memungkinkan trigger manual dari GitHub UI
 
 jobs:
   build-and-deploy:
