@@ -25,6 +25,7 @@ jobs:
     - name: Install Frontend Dependencies & Build
       run: |
         cd DocuSearch-AI
+        rm -rf node_modules
         npm install
         npm run build
 
@@ -33,6 +34,7 @@ jobs:
         mkdir -p deploy-package
         cp -r DocuSearch-AI/dist deploy-package/
         cp -r DocuSearch-AI/backend deploy-package/
+        rm -rf deploy-package/backend/node_modules
 
     - name: Deploy to VPS via SSH
       uses: appleboy/scp-action@v0.1.4
